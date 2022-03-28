@@ -12,9 +12,11 @@ class Cell {
 	private:
 		CellType _type;
 		CellState _state;
+		bool _isHighlight;
 	public:
 		Cell(CellType type);
 		void draw(bool isHighlight = false);
+		void setFlag(bool isHighlightl);
 };
 
 #endif

@@ -15,6 +15,8 @@ const char BOARD_VER_BAR = 186; // vertical bar
 const char BOARD_BLOCK = 197;
 const char BOARD_EMPTY_CELL = ' ';
 
+const char CELL_VER_BAR = 179;
+
 const short BOARD_MARGIN_TOP = 3;
 const short BOARD_MARGIN_LEFT = 5;
 const short BOARD_MARGIN_BOTTOM = 1;
@@ -26,10 +28,14 @@ const short BOARD_HEIGHT = BOARD_CELL_ROWS + 2;
 
 
 GameBoard::GameBoard() {
-	this->_rootPoint.X = BOARD_MARGIN_LEFT;
-	this->_rootPoint.Y = BOARD_MARGIN_TOP;
+	this->_boardRootPoint.X = BOARD_MARGIN_LEFT;
+	this->_boardRootPoint.Y = BOARD_MARGIN_TOP;
+	this->_cellsRootPoint.X = this->_boardRootPoint.X + 1;
+	this->_cellsRootPoint.Y = this->_boardRootPoint.Y + 1;
 	this->_initCells();
 	this->_boardDrawn = false;
+	this->_highlightedCol = -1;
+	this->_highlightedRow = -1;
 }
 
 void GameBoard::_drawRow(char c, int width) {
@@ -41,7 +47,7 @@ void GameBoard::_drawRow(char c, int width) {
 void GameBoard::_drawBoardTop(COORD fromPoint) {
 	gotoxy(fromPoint.X, fromPoint.Y);
 	cout << BOARD_TOP_LEFT;
-	this->_drawRow(BOARD_HOZ_BAR, BOARD_CELL_COLS);
+	this->_drawRow(BOARD_HOZ_BAR, BOARD_WIDTH - 1);
 	cout << BOARD_TOP_RIGHT;
 }
 
@@ -50,7 +56,7 @@ void GameBoard::_drawBoardBody(COORD fromPoint) {
 		gotoxy(fromPoint.X, fromPoint.Y + h);
 		cout << BOARD_VER_BAR;
 
-		gotoxy(fromPoint.X + BOARD_CELL_COLS + 1, fromPoint.Y + h);
+		gotoxy(fromPoint.X + BOARD_WIDTH  , fromPoint.Y + h);
 		cout << BOARD_VER_BAR;
 	}
 }
@@ -58,7 +64,7 @@ void GameBoard::_drawBoardBody(COORD fromPoint) {
 void GameBoard::_drawBoardBottom(COORD fromPoint) {
 	gotoxy(fromPoint.X, fromPoint.Y);
 	cout << BOARD_BOTTOM_LEFT;
-	this->_drawRow(BOARD_HOZ_BAR, BOARD_CELL_COLS);
+	this->_drawRow(BOARD_HOZ_BAR, BOARD_WIDTH - 1);
 	cout << BOARD_BOTTOM_RIGHT;
 }
 
@@ -67,7 +73,7 @@ void GameBoard::_drawBoardBottom(COORD fromPoint) {
 void GameBoard::drawBoard() {
 	setWhiteText();
 	if (!this->_boardDrawn) {
-		COORD root = this->_rootPoint;
+		COORD root = this->_boardRootPoint;
 		this->_drawBoardTop(root);
 		
 		root.Y++;
@@ -79,15 +85,24 @@ void GameBoard::drawBoard() {
 		this->_boardDrawn = true;
 	}
 
-	COORD cellFrom;
-	cellFrom.X = this->_rootPoint.X + 1;
-	cellFrom.Y = this->_rootPoint.Y + 1;
-	this->_drawCells(cellFrom);
+	this->_drawCells(this->_cellsRootPoint);
 	this->_drawBottomSpace();
 }
 
+void GameBoard::highlightCell(short col, short row){
+	this->_highlightedCol = col - this->_cellsRootPoint.X;
+	this->_highlightedRow = row - this->_cellsRootPoint.Y;
+}
+
+void GameBoard::flagCell(short col, short row){
+	short cellCol = col - this->_cellsRootPoint.X;
+	short cellRow = row - this->_cellsRootPoint.Y;
+	CellPtr cell = this->_cells[cellRow][cellCol/2];
+	cell->setFlag(true);
+}
+
 void GameBoard::_drawBottomSpace() {
-	COORD bottom = this->_rootPoint;
+	COORD bottom = this->_boardRootPoint;
 	bottom.X = 0;
 	bottom.Y += BOARD_HEIGHT + BOARD_MARGIN_BOTTOM;
 	gotoxy(bottom.X, bottom.Y);
@@ -95,9 +110,22 @@ void GameBoard::_drawBottomSpace() {
 
 void GameBoard::_drawCells(COORD fromPoint) {
 	for (int i = 0; i < BOARD_CELL_ROWS; ++i) {
-		for (int j = 0; j < BOARD_CELL_COLS; ++j) {
-			gotoxy(fromPoint.X + j, fromPoint.Y + i);
-			this->_cells[i][j]->draw();
+		for (int j = 0; j < BOARD_WIDTH; j+=2) {
+			short cellX = fromPoint.X + j;
+			if(j > 0){
+				--cellX;
+			}
+			gotoxy(cellX, fromPoint.Y + i);
+			if(j > 0){
+				setWhiteText();
+				cout << CELL_VER_BAR;
+			}
+			if(i == this->_highlightedRow && j == this->_highlightedCol){
+				this->_cells[i][j/2]->draw(true);
+			}
+			else{
+				this->_cells[i][j/2]->draw();
+			}
 		}
 	}
 }
@@ -111,3 +139,5 @@ void GameBoard::_initCells() {
 		}
 	}
 }
+
+
