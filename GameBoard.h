@@ -6,13 +6,19 @@
 
 
 typedef Cell* CellPtr;
+typedef CellPtr** CellMatrix;
 
 class GameBoard {
 	private:
-		COORD _rootPoint;
+		COORD _boardRootPoint;
+		COORD _cellsRootPoint;
 		short _width;
 		short _height;
-		CellPtr** _cells;
+		CellMatrix _cells;
+		COORD* _bombCells;
+		size_t _bombCellsLength;
+		short _highlightedRow;
+		short _highlightedCol;
 		bool _boardDrawn;
 
 		void _drawBoardBottom(COORD fromPoint);
@@ -22,9 +28,16 @@ class GameBoard {
 		void _initCells();
 		void _drawCells(COORD fromPoint);
 		void _drawBottomSpace();
+		CellPtr _getCellAt(short row, short col);
+		void _setCellTypes();
+		void _randomizeBombCells();
+		bool _bombExists(COORD bomb);
 	public:
 		GameBoard();
 		void draw();
+		void highlightCell(short row, short col);
+		void toggleFlagCell(short col, short row);
+		void tryOpenCell();
 };
 
 #endif

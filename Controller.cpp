@@ -23,7 +23,7 @@ void Controller::start() {
 	this->_setConsoleMode(hStdin);
 
 	DWORD eventReadCount;
-	// https://docs.microsoft.com/en-us/windows/console/input-record-str
+	// INPUT_RECORD. See https://docs.microsoft.com/en-us/windows/console/input-record-str
 	INPUT_RECORD* arrInputBuffer = new INPUT_RECORD[INPUT_BUFFER_SIZE];
     while (true) {
     	this->_waitMouseEvent(hStdin, arrInputBuffer, &eventReadCount);
@@ -39,14 +39,14 @@ HANDLE Controller::_getStandardInputHandle() {
 }
 
 void Controller::_setConsoleMode(HANDLE hStdin) {	
-    DWORD fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_INSERT_MODE | ENABLE_EXTENDED_FLAGS;
+    DWORD fdwMode = ENABLE_MOUSE_INPUT | ENABLE_INSERT_MODE;
     if (!SetConsoleMode(hStdin, fdwMode)) {
     	throw std::runtime_error("Failed to SetConsoleMode");
 	}
 }
 
 void Controller::_waitMouseEvent(HANDLE hStdin, INPUT_RECORD* arrInputBuffer, DWORD* ptrEventReadCount) {
-	// https://docs.microsoft.com/en-us/windows/console/readconsoleinput
+	// ReadConsoleInput. See https://docs.microsoft.com/en-us/windows/console/readconsoleinput
 	BOOL readSuccess = ReadConsoleInput(hStdin, arrInputBuffer, INPUT_BUFFER_SIZE, ptrEventReadCount);
 	if (!readSuccess) {
         throw std::runtime_error("Failed to ReadConsoleInput");
@@ -62,10 +62,11 @@ void Controller::_emitAllEvents(INPUT_RECORD* arrInputBuffer, DWORD eventReadCou
 }
 
 void Controller::_emitMouseEvents(MOUSE_EVENT_RECORD nativeEvent) {
-	// https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str
+	// MOUSE_EVENT_RECORD. See https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str
 	MouseClickEvent mouseClickEvent;
 	mouseClickEvent.buttonState = nativeEvent.dwButtonState;
 	mouseClickEvent.mousePosition = nativeEvent.dwMousePosition;
+
 	if (nativeEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
 		this->_leftClickHandler(mouseClickEvent);
 	}

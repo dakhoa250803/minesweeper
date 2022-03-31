@@ -12,9 +12,14 @@ class Cell {
 	private:
 		CellType _type;
 		CellState _state;
+		bool _isHighlight;
+//		short _i;
+//		short _j;
 	public:
-		Cell(CellType type);
+		Cell(CellType type, short i, short j);
 		void draw(bool isHighlight = false);
+		bool isFlagged();
+		void setFlag(bool value);
 };
 
 #endif

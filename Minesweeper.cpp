@@ -3,46 +3,45 @@
 #include "Minesweeper.h"
 
 
-Minesweeper::Minesweeper() {
-	this->board = new GameBoard();
-	this->controller = new Controller();
-}
-
-Minesweeper::~Minesweeper() {
-	delete this->board;
-	delete this->controller;
-}
-
-void Minesweeper::start() {
-	this->board->draw();
-	this->controller->start();
-}
-
-
-Minesweeper* game;
+GameBoard* board;
+Controller* controller;
 
 void onLeftClick(MouseClickEvent event) {
-	printf("Left mouse event! ");
+	COORD pos = event.mousePosition;
+	printf("Left(%d, %d); ", pos.X, pos.Y);
+	board->highlightCell(pos.X, pos.Y);
+	board->draw();
 }
 
 void onRightClick(MouseClickEvent event) {
-	printf("Right mouse event! ");
+	COORD pos = event.mousePosition;
+	board->toggleFlagCell(pos.X, pos.Y);
+	board->draw();
 }
 
 void initializeGame() {
-	game->controller->onMouseLeftClick(onLeftClick);
-	game->controller->onMouseRightClick(onRightClick);
+	board = new GameBoard();
+	controller = new Controller();
+	controller->onMouseLeftClick(onLeftClick);
+	controller->onMouseRightClick(onRightClick);
 }
 
-void createNewGame() {
-	if (game != NULL) {
-		delete game;
-	}
-	game = new Minesweeper();
-	initializeGame();
+void resetGame() {
+	delete board;
+	board = NULL;
+	delete controller;
+	controller = NULL;
 }
 
 void startGame() {
-	game->start();
+	board->draw();
+	controller->start();
+}
+
+void createNewGame() {
+	if (board != NULL) {
+		resetGame();
+	}
+	initializeGame();
 }
 
