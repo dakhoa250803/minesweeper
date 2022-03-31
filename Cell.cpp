@@ -16,7 +16,7 @@ Cell::Cell(CellType type) {
 
 void Cell::draw(bool isHighlight) {
 	if (isHighlight) {
-		setYellowText();
+		setLightGreenText();
 	}
 	else {
 		setWhiteText();
@@ -34,6 +34,7 @@ void Cell::draw(bool isHighlight) {
 	}
 }
 
+
 void Cell::setFlag(bool value){
 	if (value) {
 		this->_state = CELL_STATE_FLAGGED;
@@ -41,5 +42,9 @@ void Cell::setFlag(bool value){
 	else {
 		this->_state = CELL_STATE_CLOSED;
 	}
+}
+
+bool Cell::isFlagged(){
+	return this->_state == CELL_STATE_FLAGGED;
 }
 

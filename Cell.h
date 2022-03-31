@@ -16,7 +16,8 @@ class Cell {
 	public:
 		Cell(CellType type);
 		void draw(bool isHighlight = false);
-		void setFlag(bool isHighlightl);
+		void setFlag(bool value);
+		bool isFlagged();
 };
 
 #endif

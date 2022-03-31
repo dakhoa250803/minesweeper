@@ -19,7 +19,7 @@ void onLeftClick(MouseClickEvent event) {
 void onRightClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
 	printf("Right (%d,%d) ", pos.X,pos.Y);
-	board->flagCell(pos.X,pos.Y);
+	board->toggleFlagCell(pos.X,pos.Y);
 	board->drawBoard();
 }
 

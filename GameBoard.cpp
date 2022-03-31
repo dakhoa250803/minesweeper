@@ -25,7 +25,7 @@ const short BOARD_CELL_ROWS = 20;
 const short BOARD_WIDTH = BOARD_CELL_COLS + 2;
 const short BOARD_HEIGHT = BOARD_CELL_ROWS + 2;
 
-
+const short BOMB_COUNT = 20;
 
 GameBoard::GameBoard() {
 	this->_boardRootPoint.X = BOARD_MARGIN_LEFT;
@@ -36,11 +36,48 @@ GameBoard::GameBoard() {
 	this->_boardDrawn = false;
 	this->_highlightedCol = -1;
 	this->_highlightedRow = -1;
+	this->_bombCellsLength = 0;
 }
 
 void GameBoard::_drawRow(char c, int width) {
 	for (int w = 0; w < width; ++w) {
 		cout << c;
+	}
+}
+
+void GameBoard::drawBoard() {
+	setWhiteText();
+	if (!this->_boardDrawn) {
+		COORD root = this->_boardRootPoint;
+		this->_drawBoardTop(root);
+		
+		root.Y++;
+		this->_drawBoardBody(root);
+	
+		root.Y += BOARD_CELL_ROWS;
+		this->_drawBoardBottom(root);
+		
+		this->_boardDrawn = true;
+	}
+
+	this->_drawCells(this->_cellsRootPoint);
+	this->_drawBottomSpace();
+}
+
+void GameBoard::highlightCell(short col, short row){
+	this->_highlightedCol = col - this->_cellsRootPoint.X;
+	this->_highlightedRow = row - this->_cellsRootPoint.Y;
+}
+
+void GameBoard::toggleFlagCell(short col, short row){
+	short cellCol = col - this->_cellsRootPoint.X;
+	short cellRow = row - this->_cellsRootPoint.Y;
+	CellPtr cell = this->_getCellAt(cellRow,cellCol);
+	if(cell->isFlagged()){
+		cell->setFlag(false);
+	}
+	else{
+		cell->setFlag(true);
 	}
 }
 
@@ -68,39 +105,6 @@ void GameBoard::_drawBoardBottom(COORD fromPoint) {
 	cout << BOARD_BOTTOM_RIGHT;
 }
 
-
-
-void GameBoard::drawBoard() {
-	setWhiteText();
-	if (!this->_boardDrawn) {
-		COORD root = this->_boardRootPoint;
-		this->_drawBoardTop(root);
-		
-		root.Y++;
-		this->_drawBoardBody(root);
-	
-		root.Y += BOARD_CELL_ROWS;
-		this->_drawBoardBottom(root);
-		
-		this->_boardDrawn = true;
-	}
-
-	this->_drawCells(this->_cellsRootPoint);
-	this->_drawBottomSpace();
-}
-
-void GameBoard::highlightCell(short col, short row){
-	this->_highlightedCol = col - this->_cellsRootPoint.X;
-	this->_highlightedRow = row - this->_cellsRootPoint.Y;
-}
-
-void GameBoard::flagCell(short col, short row){
-	short cellCol = col - this->_cellsRootPoint.X;
-	short cellRow = row - this->_cellsRootPoint.Y;
-	CellPtr cell = this->_cells[cellRow][cellCol/2];
-	cell->setFlag(true);
-}
-
 void GameBoard::_drawBottomSpace() {
 	COORD bottom = this->_boardRootPoint;
 	bottom.X = 0;
@@ -121,10 +125,10 @@ void GameBoard::_drawCells(COORD fromPoint) {
 				cout << CELL_VER_BAR;
 			}
 			if(i == this->_highlightedRow && j == this->_highlightedCol){
-				this->_cells[i][j/2]->draw(true);
+				this->_getCellAt(i,j)->draw(true);
 			}
 			else{
-				this->_cells[i][j/2]->draw();
+				this->_getCellAt(i,j)->draw();
 			}
 		}
 	}
@@ -141,3 +145,43 @@ void GameBoard::_initCells() {
 }
 
 
+
+void GameBoard::_setCellTypes() {
+	// Iterate all cells
+	// For each cell:
+	//  - If is random bomb -> set bomb
+	//  - else look around -> set number
+	//         if number == 0 -> set empty
+}
+
+
+void GameBoard::_randomizeBombCells() {
+	this->_bombCells = new COORD[BOMB_COUNT];
+	COORD bomb;
+	int i = 0;
+	bool bombExists;
+
+	while (i < BOMB_COUNT) {
+		bomb.X = randomNumInRange(0, BOARD_CELL_COLS - 1);
+		bomb.Y = randomNumInRange(0, BOARD_CELL_ROWS - 1);
+
+		bombExists = false;
+		for (int j = 0; j < this->_bombCellsLength; ++j) {
+			if (bomb.X == this->_bombCells[j].X && bomb.Y == this->_bombCells[j].Y) {
+				bombExists = true;
+				break;
+			}
+		}
+		if (bombExists) {
+			continue; // randomize again!
+		}
+		else {
+			this->_bombCells[i] = bomb;
+			++this->_bombCellsLength;
+			++i;
+		}
+	}
+}
+CellPtr GameBoard::_getCellAt(short row, short col){
+	return this->_cells[row][col/2];
+}
