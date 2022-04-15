@@ -12,7 +12,7 @@ Controller* controller;
 void onLeftClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
 	printf("Left (%d,%d) ", pos.X,pos.Y);
-	board->highlightCell(pos.X,pos.Y);
+	board->openCell(pos.X,pos.Y);
 	board->drawBoard();
 }
 

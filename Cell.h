@@ -18,6 +18,8 @@ class Cell {
 		void draw(bool isHighlight = false);
 		void setFlag(bool value);
 		bool isFlagged();
+		void makeBomb();
+		void open();
 };
 
 #endif

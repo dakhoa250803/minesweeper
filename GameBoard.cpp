@@ -22,7 +22,7 @@ const short BOARD_MARGIN_LEFT = 5;
 const short BOARD_MARGIN_BOTTOM = 1;
 const short BOARD_CELL_COLS = 40;
 const short BOARD_CELL_ROWS = 20;
-const short BOARD_WIDTH = BOARD_CELL_COLS + 2;
+const short BOARD_WIDTH = BOARD_CELL_COLS*2;
 const short BOARD_HEIGHT = BOARD_CELL_ROWS + 2;
 
 const short BOMB_COUNT = 20;
@@ -32,11 +32,17 @@ GameBoard::GameBoard() {
 	this->_boardRootPoint.Y = BOARD_MARGIN_TOP;
 	this->_cellsRootPoint.X = this->_boardRootPoint.X + 1;
 	this->_cellsRootPoint.Y = this->_boardRootPoint.Y + 1;
-	this->_initCells();
 	this->_boardDrawn = false;
 	this->_highlightedCol = -1;
 	this->_highlightedRow = -1;
 	this->_bombCellsLength = 0;
+	this->_initCells();
+	this->_setCellTypes();
+}
+
+GameBoard::~GameBoard(){
+	this->_destroyCells();
+	delete this->_bombCells;
 }
 
 void GameBoard::_drawRow(char c, int width) {
@@ -81,6 +87,19 @@ void GameBoard::toggleFlagCell(short col, short row){
 	}
 }
 
+void GameBoard::openCell(short col, short row){
+	short cellCol = col - this->_cellsRootPoint.X;
+	short cellRow = row - this->_cellsRootPoint.Y;
+	if(this->_isInBoard(cellCol,cellRow)){
+		CellPtr cell = this->_getCellAt(cellCol,cellRow);
+		cell->open();
+	}
+}
+
+bool GameBoard::_isInBoard(short col, short row){
+	return (col < BOARD_WIDTH && col >= 0 && row < BOARD_CELL_ROWS && row >= 0);
+}
+
 void GameBoard::_drawBoardTop(COORD fromPoint) {
 	gotoxy(fromPoint.X, fromPoint.Y);
 	cout << BOARD_TOP_LEFT;
@@ -93,7 +112,7 @@ void GameBoard::_drawBoardBody(COORD fromPoint) {
 		gotoxy(fromPoint.X, fromPoint.Y + h);
 		cout << BOARD_VER_BAR;
 
-		gotoxy(fromPoint.X + BOARD_WIDTH  , fromPoint.Y + h);
+		gotoxy(fromPoint.X + BOARD_WIDTH , fromPoint.Y + h);
 		cout << BOARD_VER_BAR;
 	}
 }
@@ -113,22 +132,22 @@ void GameBoard::_drawBottomSpace() {
 }
 
 void GameBoard::_drawCells(COORD fromPoint) {
-	for (int i = 0; i < BOARD_CELL_ROWS; ++i) {
-		for (int j = 0; j < BOARD_WIDTH; j+=2) {
-			short cellX = fromPoint.X + j;
-			if(j > 0){
+	for (int y = 0; y < BOARD_CELL_ROWS; ++y) {
+		for (int x = 0; x < BOARD_WIDTH; x+=2) {
+			short cellX = fromPoint.X + x;
+			if(x > 0){
 				--cellX;
 			}
-			gotoxy(cellX, fromPoint.Y + i);
-			if(j > 0){
+			gotoxy(cellX, fromPoint.Y + y);
+			if(x > 0){
 				setWhiteText();
 				cout << CELL_VER_BAR;
 			}
-			if(i == this->_highlightedRow && j == this->_highlightedCol){
-				this->_getCellAt(i,j)->draw(true);
+			if(y == this->_highlightedRow && x == this->_highlightedCol){
+				this->_getCellAt(x,y)->draw(true);
 			}
 			else{
-				this->_getCellAt(i,j)->draw();
+				this->_getCellAt(x,y)->draw();
 			}
 		}
 	}
@@ -136,10 +155,10 @@ void GameBoard::_drawCells(COORD fromPoint) {
 
 void GameBoard::_initCells() {
 	this->_cells = new Cell**[BOARD_CELL_ROWS];
-	for (short i = 0; i < BOARD_CELL_ROWS; ++i) {
-		this->_cells[i] = new Cell*[BOARD_CELL_COLS];
-		for (short j = 0; j < BOARD_CELL_COLS; ++j) {
-			this->_cells[i][j] = new Cell(CELL_TYPE_EMPTY);
+	for (short y = 0; y < BOARD_CELL_ROWS; ++y) {
+		this->_cells[y] = new Cell*[BOARD_CELL_COLS];
+		for (short x = 0; x < BOARD_CELL_COLS; ++x) {
+			this->_cells[y][x] = new Cell(CELL_TYPE_EMPTY);
 		}
 	}
 }
@@ -152,6 +171,19 @@ void GameBoard::_setCellTypes() {
 	//  - If is random bomb -> set bomb
 	//  - else look around -> set number
 	//         if number == 0 -> set empty
+	this->_randomizeBombCells();
+	for(short row = 0; row < BOARD_CELL_ROWS; ++row){
+		for(short col = 0; col < BOARD_CELL_COLS; ++col){
+			CellPtr cell = this->_cells[row][col];
+			
+			for(int k = 0; k < this->_bombCellsLength;++k){
+				if(col == this->_bombCells[k].X && row == this->_bombCells[k].Y){
+					cell->makeBomb();
+				}
+						
+			}
+		}
+	}
 }
 
 
@@ -182,6 +214,24 @@ void GameBoard::_randomizeBombCells() {
 		}
 	}
 }
-CellPtr GameBoard::_getCellAt(short row, short col){
-	return this->_cells[row][col/2];
+CellPtr GameBoard::_getCellAt(short screenX, short screenY){
+	short col = this->_toCellCol(screenX);
+	short row = screenY;
+	if(col >= 0 && col < BOARD_CELL_COLS && row >= 0 && row < BOARD_CELL_ROWS){
+		return this->_cells[row][col];
+	}
+	return NULL;
+}
+
+short GameBoard::_toCellCol(short screenX){
+	return screenX/2;
+}
+
+void GameBoard::_destroyCells() {
+	for (short i = 0; i < BOARD_CELL_ROWS; ++i) {
+		for (short j = 0; j < BOARD_CELL_COLS; ++j) {
+			delete[] this->_cells[j];
+		}
+	}
+	delete[] this->_cells;
 }

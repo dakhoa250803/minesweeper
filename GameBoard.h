@@ -26,18 +26,22 @@ class GameBoard {
 		void _drawBoardTop(COORD fromPoint);
 		void _drawRow(char c, int width);
 		void _initCells();
+		void _destroyCells();
 		void _drawCells(COORD fromPoint);
 		void _drawBottomSpace();
 		CellPtr _getCellAt(short row, short col);
 		void _setCellTypes();
 		void _randomizeBombCells();
 		bool _bombExists(COORD bomb);
+		short _toCellCol(short screenCol);
+		bool _isInBoard(short col, short row);
 	public:
 		GameBoard();
+		~GameBoard();
 		void drawBoard();
 		void highlightCell(short row, short col);
 		void toggleFlagCell(short col, short row);
-		void tryOpenCell();
+		void openCell(short col, short row);
 };
 
 #endif
