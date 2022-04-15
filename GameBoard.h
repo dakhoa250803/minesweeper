@@ -17,8 +17,8 @@ class GameBoard {
 		CellMatrix _cells;
 		COORD* _bombCells;
 		size_t _bombCellsLength;
-		short _highlightedRow;
-		short _highlightedCol;
+		short _highlightedX;
+		short _highlightedY;
 		bool _boardDrawn;
 
 		void _drawBoardBottom(COORD fromPoint);
@@ -26,18 +26,21 @@ class GameBoard {
 		void _drawBoardTop(COORD fromPoint);
 		void _drawRow(char c, int width);
 		void _initCells();
+		void _destroyCells();
 		void _drawCells(COORD fromPoint);
 		void _drawBottomSpace();
-		CellPtr _getCellAt(short row, short col);
 		void _setCellTypes();
 		void _randomizeBombCells();
 		bool _bombExists(COORD bomb);
+		CellPtr _getCellAt(short screenX, short screenY);
+		short _toCellCol(short screenX);
 	public:
 		GameBoard();
+		~GameBoard();
 		void draw();
-		void highlightCell(short row, short col);
-		void toggleFlagCell(short col, short row);
-		void tryOpenCell();
+		void highlightCell(COORD pos);
+		void toggleFlagCell(COORD pos);
+		void tryOpenCell(COORD pos);
 };
 
 #endif

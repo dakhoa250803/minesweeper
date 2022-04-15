@@ -13,6 +13,7 @@ class Cell {
 		CellType _type;
 		CellState _state;
 		bool _isHighlight;
+		short _num;
 //		short _i;
 //		short _j;
 	public:
@@ -20,6 +21,8 @@ class Cell {
 		void draw(bool isHighlight = false);
 		bool isFlagged();
 		void setFlag(bool value);
+		void makeBomb();
+		void open();
 };
 
 #endif

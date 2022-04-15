@@ -10,5 +10,7 @@ void setGreenText();
 void setLightGreenText();
 void setLightRedText();
 void setLargeFont();
+void setBlueText();
+void setLightBlueText();
 
 #endif

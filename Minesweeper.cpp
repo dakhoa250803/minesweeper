@@ -9,13 +9,13 @@ Controller* controller;
 void onLeftClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
 	printf("Left(%d, %d); ", pos.X, pos.Y);
-	board->highlightCell(pos.X, pos.Y);
+	board->tryOpenCell(pos);
 	board->draw();
 }
 
 void onRightClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
-	board->toggleFlagCell(pos.X, pos.Y);
+	board->toggleFlagCell(pos);
 	board->draw();
 }
 

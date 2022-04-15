@@ -39,6 +39,14 @@ void setLightRedText() {
 	setColor(FOREGROUND_RED);
 }
 
+void setBlueText() {
+	setColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+}
+
+void setLightBlueText() {
+	setColor(FOREGROUND_BLUE);
+}
+
 void setLargeFont() {
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
