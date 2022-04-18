@@ -39,6 +39,10 @@ void setLightRedText() {
 	setColor(FOREGROUND_RED);
 }
 
+void setRedText() {
+	setColor(FOREGROUND_RED | FOREGROUND_INTENSITY);
+}
+
 void setBlueText() {
 	setColor(FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 }
@@ -46,6 +50,15 @@ void setBlueText() {
 void setLightBlueText() {
 	setColor(FOREGROUND_BLUE);
 }
+
+void setCyanText() {
+	setColor(FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+}
+
+void setVioletText() {
+	setColor(FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY);
+}
+
 
 void setLargeFont() {
 	CONSOLE_FONT_INFOEX cfi;

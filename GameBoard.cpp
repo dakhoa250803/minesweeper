@@ -23,7 +23,7 @@ const short BOARD_CELL_COLS = 40;
 const short BOARD_CELL_ROWS = 20;
 const short BOARD_WIDTH = BOARD_CELL_COLS * 2;
 const short BOARD_HEIGHT = BOARD_CELL_ROWS + 2;
-const short BOMB_COUNT = 20;
+const short BOMB_COUNT = 600;
 
 GameBoard::GameBoard() {
 	this->_boardRootPoint.X = BOARD_MARGIN_LEFT;
@@ -137,7 +137,7 @@ void GameBoard::_drawCells(COORD fromPoint) {
 			}
 			gotoxy(cellX, fromPoint.Y + y);
 			if (x > 0) {
-				setWhiteText();
+				setLightWhiteText();
 				cout << CELL_VER_BAR;
 			}
 			if (y == this->_highlightedY && x == this->_highlightedX) {
@@ -180,37 +180,73 @@ void GameBoard::_setCellTypes() {
 	for (short row = 0; row < BOARD_CELL_ROWS; ++row) {
 		for (short col = 0; col < BOARD_CELL_COLS; ++col) {
 			CellPtr cell = this->_cells[row][col];
+			if (this->_bombExists(row, col)) {
+				cell->makeBomb();
+			}
+		}
+	}
 
-			// Check if this coordinate contains a bomb
-			for (int k = 0; k < this->_bombCellsLength; ++k) {
-				if (col == this->_bombCells[k].X &&
-					row == this->_bombCells[k].Y
-				) {
-					cell->makeBomb();
-				}
+	for (short row = 0; row < BOARD_CELL_ROWS; ++row) {
+		for (short col = 0; col < BOARD_CELL_COLS; ++col) {
+			CellPtr cell = this->_cells[row][col];
+
+			if (!cell->isBomb()) {
+				short bombCount = this->_countNeighborBombs(row, col);
+				cell->setNumber(bombCount);
 			}
 		}
 	}
 }
 
+short GameBoard::_countNeighborBombs(short row, short col) {
+	short count = 0;
+	CellMatrix cells = this->_cells;
+	// top-left
+	if (row-1 >= 0 && col-1 >= 0 && cells[row-1][col-1]->isBomb()) {
+		++count;
+	}
+	// top-center
+	if (row-1 >= 0 && cells[row-1][col]->isBomb()) {
+		++count;
+	}
+	// top-right
+	if (row-1 >= 0 && col+1 < BOARD_CELL_COLS && cells[row-1][col+1]->isBomb()) {
+		++count;
+	}
+	// mid-right
+	if (col+1 < BOARD_CELL_COLS && cells[row][col+1]->isBomb()) {
+		++count;
+	}
+	// bottom-right
+	if (row+1 < BOARD_CELL_ROWS && col+1 < BOARD_CELL_COLS && cells[row+1][col+1]->isBomb()) {
+		++count;
+	}
+	// bottom-center
+	if (row+1 < BOARD_CELL_ROWS && cells[row+1][col]->isBomb()) {
+		++count;
+	}
+	// bottom-left
+	if (row+1 < BOARD_CELL_ROWS && col-1 >= 0 && cells[row+1][col-1]->isBomb()) {
+		++count;
+	}
+	// mid-left
+	if (col-1 >= 0 && cells[row][col-1]->isBomb()) {
+		++count;
+	}
+	return count;
+}
+
 void GameBoard::_randomizeBombCells() {
-	this->_bombCells = new COORD[BOMB_COUNT];
-	COORD bomb;
+	this->_bombCells = new CELL_COORD[BOMB_COUNT];
+	CELL_COORD bomb;
 	int i = 0;
 	bool bombExists;
 
 	while (i < BOMB_COUNT) {
-		bomb.X = randomNumInRange(0, BOARD_CELL_COLS - 1);
-		bomb.Y = randomNumInRange(0, BOARD_CELL_ROWS - 1);
+		bomb.col = randomNumInRange(0, BOARD_CELL_COLS - 1);
+		bomb.row = randomNumInRange(0, BOARD_CELL_ROWS - 1);
 
-		bombExists = false;
-		for (int j = 0; j < this->_bombCellsLength; ++j) {
-			if (bomb.X == this->_bombCells[j].X && bomb.Y == this->_bombCells[j].Y) {
-				bombExists = true;
-				break;
-			}
-		}
-		if (bombExists) {
+		if (this->_bombExists(bomb.row, bomb.col)) {
 			continue; // randomize again!
 		}
 		else {
@@ -221,7 +257,13 @@ void GameBoard::_randomizeBombCells() {
 	}
 }
 
-bool GameBoard::_bombExists(COORD bomb) {
+bool GameBoard::_bombExists(short row, short col) {
+	for (int i = 0; i < this->_bombCellsLength; ++i) {
+		if (row == this->_bombCells[i].row && col == this->_bombCells[i].col) {
+			return true;
+		}
+	}
+	return false;
 }
 
 CellPtr GameBoard::_getCellAt(short screenX, short screenY) {

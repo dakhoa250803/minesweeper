@@ -15,7 +15,7 @@ class GameBoard {
 		short _width;
 		short _height;
 		CellMatrix _cells;
-		COORD* _bombCells;
+		CELL_COORD* _bombCells;
 		size_t _bombCellsLength;
 		short _highlightedX;
 		short _highlightedY;
@@ -31,9 +31,10 @@ class GameBoard {
 		void _drawBottomSpace();
 		void _setCellTypes();
 		void _randomizeBombCells();
-		bool _bombExists(COORD bomb);
+		bool _bombExists(short row, short col);
 		CellPtr _getCellAt(short screenX, short screenY);
 		short _toCellCol(short screenX);
+		short _countNeighborBombs(short row, short col);
 	public:
 		GameBoard();
 		~GameBoard();
