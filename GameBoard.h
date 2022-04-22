@@ -35,6 +35,7 @@ class GameBoard {
 		CellPtr _getCellAt(short screenX, short screenY);
 		short _toCellCol(short screenX);
 		short _countNeighborBombs(short row, short col);
+		void _redraw(CellPtr cell);
 	public:
 		GameBoard();
 		~GameBoard();

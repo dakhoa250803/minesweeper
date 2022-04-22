@@ -11,8 +11,8 @@ const char CHAR_CELL_FLAGGED = 5;
 const char CHAR_CELL_BOMB = 15;
 
 Cell::Cell(CellType type, short i, short j) {
-//	this->_state = CELL_STATE_CLOSED;
-	this->_state = CELL_STATE_OPEN;
+	this->_state = CELL_STATE_CLOSED;
+//	this->_state = CELL_STATE_OPEN;
 	this->_type = type;
 //	this->_i = i;
 //	this->_j = j;
@@ -92,7 +92,19 @@ void Cell::open() {
 	this->_state = CELL_STATE_OPEN;
 }
 
+bool Cell::isOpen() {
+	return (this->_state == CELL_STATE_OPEN);
+}
+
 void Cell::setNumber(short val) {
 	this->_num = val;
 	this->_type = (val > 0 ? CELL_TYPE_NUM : CELL_TYPE_EMPTY);
+}
+
+void Cell::setPosition(COORD pos) {
+	this->_pos = pos;
+}
+
+COORD Cell::getPosition() {
+	return this->_pos;
 }

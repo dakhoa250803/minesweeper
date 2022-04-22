@@ -18,8 +18,7 @@ class Cell {
 		CellState _state;
 		bool _isHighlight;
 		short _num;
-//		short _i;
-//		short _j;
+		COORD _pos;
 		void _drawNum();
 	public:
 		Cell(CellType type, short i, short j);
@@ -30,6 +29,9 @@ class Cell {
 		bool isBomb();
 		void setNumber(short val);
 		void open();
+		bool isOpen();
+		void setPosition(COORD pos);
+		COORD getPosition();
 };
 
 #endif

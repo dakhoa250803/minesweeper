@@ -23,7 +23,7 @@ const short BOARD_CELL_COLS = 40;
 const short BOARD_CELL_ROWS = 20;
 const short BOARD_WIDTH = BOARD_CELL_COLS * 2;
 const short BOARD_HEIGHT = BOARD_CELL_ROWS + 2;
-const short BOMB_COUNT = 600;
+const short BOMB_COUNT = 100;
 
 GameBoard::GameBoard() {
 	this->_boardRootPoint.X = BOARD_MARGIN_LEFT;
@@ -63,6 +63,15 @@ void GameBoard::draw() {
 	this->_drawBottomSpace();
 }
 
+void GameBoard::_redraw(CellPtr cell) {
+	if (cell != NULL) {
+		COORD pos = cell->getPosition();
+		gotoxy(pos.X, pos.Y);
+		cell->draw();
+		this->_drawBottomSpace();
+	}
+}
+
 void GameBoard::highlightCell(COORD pos) {
 	this->_highlightedX = pos.X - this->_cellsRootPoint.X;
 	this->_highlightedY = pos.Y - this->_cellsRootPoint.Y;
@@ -72,9 +81,11 @@ void GameBoard::tryOpenCell(COORD pos) {
 	short cellX = pos.X - this->_cellsRootPoint.X;
 	short cellY = pos.Y - this->_cellsRootPoint.Y;
 	CellPtr cell = this->_getCellAt(cellX, cellY);
-	if (cell != NULL) {
+	if (cell != NULL && !cell->isFlagged()) {
 		cell->open();
 	}
+	this->_redraw(cell);
+	printf("Left(%d, %d); ", pos.X, pos.Y);
 }
 
 void GameBoard::toggleFlagCell(COORD pos) {
@@ -82,13 +93,15 @@ void GameBoard::toggleFlagCell(COORD pos) {
 	short cellY = pos.Y - this->_cellsRootPoint.Y;
 	CellPtr cell = this->_getCellAt(cellX, cellY);
 	if (cell == NULL) return;
+	
+	if (cell->isOpen()) {
+		// rippleOpen
+	} else {
+		cell->setFlag(! cell->isFlagged());
+	}
 
-	if (cell->isFlagged()) {
-		cell->setFlag(false);
-	}
-	else {
-		cell->setFlag(true);
-	}
+	this->_redraw(cell);
+	printf("Right(%d, %d); ", pos.X, pos.Y);
 }
 
 void GameBoard::_drawRow(char c, int width) {
@@ -132,19 +145,26 @@ void GameBoard::_drawCells(COORD fromPoint) {
 	for (int y = 0; y < BOARD_CELL_ROWS; ++y) {
 		for (int x = 0; x < BOARD_WIDTH; x+=2) {
 			short cellX = fromPoint.X + x;
+			COORD cellPos;
+			cellPos.X = cellX;
+			cellPos.Y = fromPoint.Y + y;
+			
 			if (x > 0) {
 				--cellX;
 			}
-			gotoxy(cellX, fromPoint.Y + y);
+			gotoxy(cellX, cellPos.Y);
 			if (x > 0) {
 				setLightWhiteText();
 				cout << CELL_VER_BAR;
 			}
+
+			CellPtr cell = this->_getCellAt(x, y);
+			cell->setPosition(cellPos);
 			if (y == this->_highlightedY && x == this->_highlightedX) {
-				this->_getCellAt(x, y)->draw(true);
+				cell->draw(true);
 			}
 			else {
-				this->_getCellAt(x, y)->draw();
+				cell->draw();
 			}
 		}
 	}
