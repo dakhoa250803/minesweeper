@@ -12,15 +12,13 @@ Controller* controller;
 void onLeftClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
 	printf("Left (%d,%d) ", pos.X,pos.Y);
-	board->openCell(pos.X,pos.Y);
-	board->drawBoard();
+	board->openCell(pos);
 }
 
 void onRightClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
 	printf("Right (%d,%d) ", pos.X,pos.Y);
-	board->toggleFlagCell(pos.X,pos.Y);
-	board->drawBoard();
+	board->toggleFlagCell(pos);
 }
 
 void initializeGame() {

@@ -25,7 +25,7 @@ const short BOARD_CELL_ROWS = 20;
 const short BOARD_WIDTH = BOARD_CELL_COLS*2;
 const short BOARD_HEIGHT = BOARD_CELL_ROWS + 2;
 
-const short BOMB_COUNT = 20;
+const short BOMB_COUNT = 50;
 
 GameBoard::GameBoard() {
 	this->_boardRootPoint.X = BOARD_MARGIN_LEFT;
@@ -33,8 +33,8 @@ GameBoard::GameBoard() {
 	this->_cellsRootPoint.X = this->_boardRootPoint.X + 1;
 	this->_cellsRootPoint.Y = this->_boardRootPoint.Y + 1;
 	this->_boardDrawn = false;
-	this->_highlightedCol = -1;
-	this->_highlightedRow = -1;
+	this->_highlightedX = -1;
+	this->_highlightedY = -1;
 	this->_bombCellsLength = 0;
 	this->_initCells();
 	this->_setCellTypes();
@@ -52,6 +52,9 @@ void GameBoard::_drawRow(char c, int width) {
 }
 
 void GameBoard::drawBoard() {
+	this->_drawCells(this->_cellsRootPoint);
+	
+	
 	setWhiteText();
 	if (!this->_boardDrawn) {
 		COORD root = this->_boardRootPoint;
@@ -66,34 +69,36 @@ void GameBoard::drawBoard() {
 		this->_boardDrawn = true;
 	}
 
-	this->_drawCells(this->_cellsRootPoint);
 	this->_drawBottomSpace();
 }
 
-void GameBoard::highlightCell(short col, short row){
-	this->_highlightedCol = col - this->_cellsRootPoint.X;
-	this->_highlightedRow = row - this->_cellsRootPoint.Y;
+void GameBoard::highlightCell(COORD pos){
+	this->_highlightedX = pos.X - this->_cellsRootPoint.X;
+	this->_highlightedY = pos.Y - this->_cellsRootPoint.Y;
 }
 
-void GameBoard::toggleFlagCell(short col, short row){
-	short cellCol = col - this->_cellsRootPoint.X;
-	short cellRow = row - this->_cellsRootPoint.Y;
-	CellPtr cell = this->_getCellAt(cellRow,cellCol);
+void GameBoard::toggleFlagCell(COORD pos){
+	short cellX = pos.X - this->_cellsRootPoint.X;
+	short cellY = pos.Y - this->_cellsRootPoint.Y;
+	CellPtr cell = this->_getCellAt(cellX,cellY);
 	if(cell->isFlagged()){
-		cell->setFlag(false);
 	}
 	else{
-		cell->setFlag(true);
+		cell->setFlag(!cell->isFlagged());
 	}
+	this->_reDraw(cell);
+	printf("Right(%d, %d);", pos.X, pos.Y );
 }
 
-void GameBoard::openCell(short col, short row){
-	short cellCol = col - this->_cellsRootPoint.X;
-	short cellRow = row - this->_cellsRootPoint.Y;
-	if(this->_isInBoard(cellCol,cellRow)){
-		CellPtr cell = this->_getCellAt(cellCol,cellRow);
+void GameBoard::openCell(COORD pos){
+	short cellX = pos.X - this->_cellsRootPoint.X;
+	short cellY = pos.Y - this->_cellsRootPoint.Y;
+	CellPtr cell = this->_getCellAt(cellX,cellY);
+	if(cell != NULL && !cell->isFlagged()){
 		cell->open();
 	}
+	this->_reDraw(cell);
+	printf("Left(%d, %d);", pos.X, pos.Y );
 }
 
 bool GameBoard::_isInBoard(short col, short row){
@@ -135,30 +140,46 @@ void GameBoard::_drawCells(COORD fromPoint) {
 	for (int y = 0; y < BOARD_CELL_ROWS; ++y) {
 		for (int x = 0; x < BOARD_WIDTH; x+=2) {
 			short cellX = fromPoint.X + x;
-			if(x > 0){
+			COORD cellPos;
+			cellPos.X = cellX;
+			cellPos.Y = fromPoint.Y + y;
+			
+			if (x > 0) {
 				--cellX;
 			}
-			gotoxy(cellX, fromPoint.Y + y);
-			if(x > 0){
-				setWhiteText();
+			gotoxy(cellX, cellPos.Y);
+			if (x > 0) {
+				setLightWhiteText();
 				cout << CELL_VER_BAR;
 			}
-			if(y == this->_highlightedRow && x == this->_highlightedCol){
-				this->_getCellAt(x,y)->draw(true);
+
+			CellPtr cell = this->_getCellAt(x, y);
+			cell->setPosition(cellPos);
+			if (y == this->_highlightedY && x == this->_highlightedX) {
+				cell->draw(true);
 			}
-			else{
-				this->_getCellAt(x,y)->draw();
+			else {
+				cell->draw();
 			}
 		}
 	}
 }
 
+void GameBoard::_reDraw(CellPtr cell){
+	if(cell != NULL){
+		COORD pos = cell->getPosition();
+		gotoxy(pos.X,pos.Y);
+		cell->draw();
+		this->_drawBottomSpace();
+	}
+}
+
 void GameBoard::_initCells() {
 	this->_cells = new Cell**[BOARD_CELL_ROWS];
-	for (short y = 0; y < BOARD_CELL_ROWS; ++y) {
-		this->_cells[y] = new Cell*[BOARD_CELL_COLS];
-		for (short x = 0; x < BOARD_CELL_COLS; ++x) {
-			this->_cells[y][x] = new Cell(CELL_TYPE_EMPTY);
+	for (short i = 0; i < BOARD_CELL_ROWS; ++i) {
+		this->_cells[i] = new Cell*[BOARD_CELL_COLS];
+		for (short j = 0; j < BOARD_CELL_COLS; ++j) {
+			this->_cells[i][j] = new Cell(CELL_TYPE_EMPTY, i, j);
 		}
 	}
 }
@@ -176,35 +197,85 @@ void GameBoard::_setCellTypes() {
 		for(short col = 0; col < BOARD_CELL_COLS; ++col){
 			CellPtr cell = this->_cells[row][col];
 			
-			for(int k = 0; k < this->_bombCellsLength;++k){
-				if(col == this->_bombCells[k].X && row == this->_bombCells[k].Y){
-					cell->makeBomb();
-				}
-						
+			if(this->_isBombExists(row,col)){
+				cell->makeBomb();
+			}
+			else{
+				short bombcount = this->_countNeighborBombs(row,col);
+			}
+		}
+	}
+	
+	for (short row = 0; row < BOARD_CELL_ROWS; ++row) {
+		for (short col = 0; col < BOARD_CELL_COLS; ++col) {
+			CellPtr cell = this->_cells[row][col];
+
+			if (!cell->isBomb()) {
+				short bombCount = this->_countNeighborBombs(row, col);
+				cell->setNum(bombCount);
 			}
 		}
 	}
 }
 
+short GameBoard::_countNeighborBombs(short row,short col){
+	short count = 0;
+	CellMatrix cells = this->_cells;
+	// top-left
+	if (row-1 >= 0 && col-1 >= 0 && cells[row-1][col-1]->isBomb()) {
+		++count;
+	}
+	// top-center
+	if (row-1 >= 0 && cells[row-1][col]->isBomb()) {
+		++count;
+	}
+	// top-right
+	if (row-1 >= 0 && col+1 < BOARD_CELL_COLS && cells[row-1][col+1]->isBomb()) {
+		++count;
+	}
+	// mid-right
+	if (col+1 < BOARD_CELL_COLS && cells[row][col+1]->isBomb()) {
+		++count;
+	}
+	// bottom-right
+	if (row+1 < BOARD_CELL_ROWS && col+1 < BOARD_CELL_COLS && cells[row+1][col+1]->isBomb()) {
+		++count;
+	}
+	// bottom-center
+	if (row+1 < BOARD_CELL_ROWS && cells[row+1][col]->isBomb()) {
+		++count;
+	}
+	// bottom-left
+	if (row+1 < BOARD_CELL_ROWS && col-1 >= 0 && cells[row+1][col-1]->isBomb()) {
+		++count;
+	}
+	// mid-left
+	if (col-1 >= 0 && cells[row][col-1]->isBomb()) {
+		++count;
+	}
+	return count;
+}
+
+bool GameBoard::_isBombExists(short row, short col){
+	for (int j = 0; j < this->_bombCellsLength; ++j) {
+		if (row == this->_bombCells[j].row && col == this->_bombCells[j].col) {
+			return true;
+		}
+	}
+	return false;
+}
 
 void GameBoard::_randomizeBombCells() {
-	this->_bombCells = new COORD[BOMB_COUNT];
-	COORD bomb;
+	this->_bombCells = new CELL_COORD[BOMB_COUNT];
+	CELL_COORD bomb;
 	int i = 0;
-	bool bombExists;
+//	bool bombExists;
 
 	while (i < BOMB_COUNT) {
-		bomb.X = randomNumInRange(0, BOARD_CELL_COLS - 1);
-		bomb.Y = randomNumInRange(0, BOARD_CELL_ROWS - 1);
-
-		bombExists = false;
-		for (int j = 0; j < this->_bombCellsLength; ++j) {
-			if (bomb.X == this->_bombCells[j].X && bomb.Y == this->_bombCells[j].Y) {
-				bombExists = true;
-				break;
-			}
-		}
-		if (bombExists) {
+		bomb.row = randomNumInRange(0, BOARD_CELL_COLS - 1);
+		bomb.col = randomNumInRange(0, BOARD_CELL_ROWS - 1);
+		
+		if (this->_isBombExists(bomb.row,bomb.col)) {
 			continue; // randomize again!
 		}
 		else {
@@ -214,6 +285,7 @@ void GameBoard::_randomizeBombCells() {
 		}
 	}
 }
+
 CellPtr GameBoard::_getCellAt(short screenX, short screenY){
 	short col = this->_toCellCol(screenX);
 	short row = screenY;

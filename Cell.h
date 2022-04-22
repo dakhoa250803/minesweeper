@@ -13,13 +13,20 @@ class Cell {
 		CellType _type;
 		CellState _state;
 		bool _isHighlight;
+		short _num;
+		void _drawNum();
+		COORD _pos;
 	public:
-		Cell(CellType type);
+		Cell(CellType type, short i, short j);
 		void draw(bool isHighlight = false);
 		void setFlag(bool value);
 		bool isFlagged();
+		bool isBomb();
 		void makeBomb();
 		void open();
+		void setNum(short value);
+		void setPosition(COORD pos);
+		COORD getPosition();
 };
 
 #endif
