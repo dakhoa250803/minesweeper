@@ -10,12 +10,15 @@ const char CHAR_CELL_CLOSED = 254;
 const char CHAR_CELL_FLAGGED = 5;
 const char CHAR_CELL_BOMB = 15;
 
-Cell::Cell(CellType type, short i, short j) {
+Cell::Cell(CellType type, short row, short col) {
 	this->_state = CELL_STATE_CLOSED;
 //	this->_state = CELL_STATE_OPEN;
 	this->_type = type;
-//	this->_i = i;
-//	this->_j = j;
+
+	CELL_COORD coord;
+	coord.row = row;
+	coord.col = col;
+	this->_cellCoord = coord;
 }
 
 void Cell::draw(bool isHighlight) {
@@ -96,15 +99,28 @@ bool Cell::isOpen() {
 	return (this->_state == CELL_STATE_OPEN);
 }
 
+bool Cell::isEmpty() {
+	return (this->_type == CELL_TYPE_EMPTY);
+}
+
 void Cell::setNumber(short val) {
 	this->_num = val;
 	this->_type = (val > 0 ? CELL_TYPE_NUM : CELL_TYPE_EMPTY);
 }
 
-void Cell::setPosition(COORD pos) {
-	this->_pos = pos;
+void Cell::setCellCoord(CELL_COORD val) {
+	this->_cellCoord = val;
 }
 
-COORD Cell::getPosition() {
-	return this->_pos;
+CELL_COORD Cell::getCellCoord() {
+	return this->_cellCoord;
 }
+
+void Cell::setScreenCoord(COORD val) {
+	this->_screenCoord = val;
+}
+
+COORD Cell::getScreenCoord() {
+	return this->_screenCoord;
+}
+

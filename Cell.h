@@ -18,10 +18,11 @@ class Cell {
 		CellState _state;
 		bool _isHighlight;
 		short _num;
-		COORD _pos;
+		CELL_COORD _cellCoord;
+		COORD _screenCoord;
 		void _drawNum();
 	public:
-		Cell(CellType type, short i, short j);
+		Cell(CellType type, short row, short col);
 		void draw(bool isHighlight = false);
 		bool isFlagged();
 		void setFlag(bool value);
@@ -30,8 +31,11 @@ class Cell {
 		void setNumber(short val);
 		void open();
 		bool isOpen();
-		void setPosition(COORD pos);
-		COORD getPosition();
+		bool isEmpty();
+		void setScreenCoord(COORD val);
+		COORD getScreenCoord();
+		void setCellCoord(CELL_COORD val);
+		CELL_COORD getCellCoord();
 };
 
 #endif
