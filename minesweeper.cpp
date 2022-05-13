@@ -1,9 +1,6 @@
-#include <windows.h>
 #include "Controller.h"
 #include "GameBoard.h"
 #include "Minesweeper.h"
-
-
 
 
 GameBoard* board;
@@ -11,24 +8,24 @@ Controller* controller;
 
 void onLeftClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
-	printf("Left (%d,%d) ", pos.X,pos.Y);
-	board->openCell(pos);
+	board->tryOpenCell(pos);
 }
 
 void onRightClick(MouseClickEvent event) {
 	COORD pos = event.mousePosition;
-	printf("Right (%d,%d) ", pos.X,pos.Y);
 	board->toggleFlagCell(pos);
 }
 
 void initializeGame() {
 	board = new GameBoard();
+	board->onGameReset(restartGame);
+	
 	controller = new Controller();
 	controller->onMouseLeftClick(onLeftClick);
 	controller->onMouseRightClick(onRightClick);
 }
 
-void resetGame(){
+void resetGame() {
 	delete board;
 	board = NULL;
 	delete controller;
@@ -36,7 +33,7 @@ void resetGame(){
 }
 
 void startGame() {
-	board->drawBoard();
+	board->draw();
 	controller->start();
 }
 
@@ -47,4 +44,7 @@ void createNewGame() {
 	initializeGame();
 }
 
-
+void restartGame(){
+	createNewGame();
+	startGame();
+}

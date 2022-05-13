@@ -7,6 +7,7 @@
 
 void createNewGame();
 void startGame();
+void restartGame();
 
 #endif
 

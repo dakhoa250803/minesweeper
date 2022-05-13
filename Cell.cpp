@@ -6,16 +6,24 @@
 
 using namespace std;
 
-const char CELL_CLOSED = 22;
-const char CELL_FLAGGED = 3;
-const char CELL_BOMB = 15;
+const char CHAR_CELL_CLOSED = 254;
+const char CHAR_CELL_FLAGGED = 5;
+const char CHAR_CELL_BOMB = 15;
 
-Cell::Cell(CellType type, short i, short j) {
+Cell::Cell(CellType type, short row, short col) {
 	this->_state = CELL_STATE_CLOSED;
+//	this->_state = CELL_STATE_OPEN;
 	this->_type = type;
+
+	CELL_COORD coord;
+	coord.row = row;
+	coord.col = col;
+	this->_cellCoord = coord;
 }
 
 void Cell::draw(bool isHighlight) {
+//	printf("Cell(%d, %d)=%d; ", this->_i, this->_j, this->_state);
+	//cout << "draw: " << this->_state;
 	if (isHighlight) {
 		setLightYellowText();
 	}
@@ -28,7 +36,7 @@ void Cell::draw(bool isHighlight) {
 			switch (this->_type) {
 				case CELL_TYPE_BOMB:
 					setRedText();
-					cout << CELL_BOMB;
+					cout << CHAR_CELL_BOMB;
 					break;
 				case CELL_TYPE_NUM:
 					this->_drawNum();
@@ -39,12 +47,11 @@ void Cell::draw(bool isHighlight) {
 			break;
 		case CELL_STATE_FLAGGED:
 			setGreenText();
-			cout << CELL_FLAGGED;
+			cout << CHAR_CELL_FLAGGED;
 			break;
 		default:
-			cout << CELL_CLOSED;
+			cout << CHAR_CELL_CLOSED;
 	}
-	
 }
 
 void Cell::_drawNum() {
@@ -63,7 +70,11 @@ void Cell::_drawNum() {
 	cout << this->_num;
 }
 
-void Cell::setFlag(bool value){
+bool Cell::isFlagged() {
+	return (this->_state == CELL_STATE_FLAGGED);
+}
+
+void Cell::setFlag(bool value) {
 	if (value) {
 		this->_state = CELL_STATE_FLAGGED;
 	}
@@ -72,31 +83,43 @@ void Cell::setFlag(bool value){
 	}
 }
 
-bool Cell::isFlagged(){
-	return this->_state == CELL_STATE_FLAGGED;
-}
-
-bool Cell::isBomb(){
-	return this->_type == CELL_TYPE_BOMB;
-}
-
-void Cell::open(){
-	this->_state = CELL_STATE_OPEN;
-}
-
-void Cell::makeBomb(){
+void Cell::makeBomb() {
 	this->_type = CELL_TYPE_BOMB;
 }
 
-void Cell::setNum(short value){
-	this->_num = value;
-	this->_type =(value > 0 ? CELL_TYPE_NUM : CELL_TYPE_EMPTY);
+bool Cell::isBomb() {
+	return (this->_type == CELL_TYPE_BOMB);
 }
 
-void Cell::setPosition(COORD pos) {
-	this->_pos = pos;
+void Cell::open() {
+	this->_state = CELL_STATE_OPEN;
 }
 
-COORD Cell::getPosition() {
-	return this->_pos;
+bool Cell::isOpen() {
+	return (this->_state == CELL_STATE_OPEN);
+}
+
+bool Cell::isEmpty() {
+	return (this->_type == CELL_TYPE_EMPTY);
+}
+
+void Cell::setNumber(short val) {
+	this->_num = val;
+	this->_type = (val > 0 ? CELL_TYPE_NUM : CELL_TYPE_EMPTY);
+}
+
+void Cell::setCellCoord(CELL_COORD val) {
+	this->_cellCoord = val;
+}
+
+CELL_COORD Cell::getCellCoord() {
+	return this->_cellCoord;
+}
+
+void Cell::setScreenCoord(COORD val) {
+	this->_screenCoord = val;
+}
+
+COORD Cell::getScreenCoord() {
+	return this->_screenCoord;
 }

@@ -7,6 +7,10 @@
 enum CellType { CELL_TYPE_EMPTY, CELL_TYPE_NUM, CELL_TYPE_BOMB };
 enum CellState { CELL_STATE_CLOSED, CELL_STATE_OPEN, CELL_STATE_FLAGGED };
 
+struct CELL_COORD {
+	short row;
+	short col;
+};
 
 class Cell {
 	private:
@@ -14,19 +18,24 @@ class Cell {
 		CellState _state;
 		bool _isHighlight;
 		short _num;
+		CELL_COORD _cellCoord;
+		COORD _screenCoord;
 		void _drawNum();
-		COORD _pos;
 	public:
-		Cell(CellType type, short i, short j);
+		Cell(CellType type, short row, short col);
 		void draw(bool isHighlight = false);
-		void setFlag(bool value);
 		bool isFlagged();
-		bool isBomb();
+		void setFlag(bool value);
 		void makeBomb();
+		bool isBomb();
+		void setNumber(short val);
 		void open();
-		void setNum(short value);
-		void setPosition(COORD pos);
-		COORD getPosition();
+		bool isOpen();
+		bool isEmpty();
+		void setScreenCoord(COORD val);
+		COORD getScreenCoord();
+		void setCellCoord(CELL_COORD val);
+		CELL_COORD getCellCoord();
 };
 
 #endif
